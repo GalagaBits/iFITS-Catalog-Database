@@ -1,0 +1,33 @@
+# .github/workflows/release.yml
+# 
+# This is a GitHub Actions that builds and publishes the release
+# when a tag (i.e. v0.1.0) is pushed.
+# 
+
+name: Release catalog
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write               # the workflow will write the release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest      # type of machine the action will run on
+    steps:
+      - uses: actions/checkout@v4  # what is this step?
+      
+      - name: Install sqlite3
+        run: sudo apt-get update && sudo apt-get install -y sqlite3
+
+      - name: Build catalog.sqlite and manifest.json
+        run: sh ./build.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: | # the | lets the command run on several lines
+            gh release create "$GITHUB_REF_NAME" catalog.sqlite manifest.json \
+              --title "Catalog $GITHUB_REF_NAME" --notes "Automated buid."
