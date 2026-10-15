@@ -4,7 +4,7 @@
 
 CREATE TABLE fitsfiles (
 
-    id              INTERGER PRIMARY KEY,                   -- The id that can be referenced in other tables.
+    id              INTEGER PRIMARY KEY,                   -- The id that can be referenced in other tables.
     target          TEXT NOT NULL,                          -- NOT NULL means this column cannot be empty.
     telescope       TEXT NOT NULL,                          -- 'HST'
     kind            TEXT NOT NULL CHECK (kind IN ('image', 'cube')),
