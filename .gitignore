@@ -1,0 +1,6 @@
+# The SQLlite database will be
+# released on GitHub Releases, no need to save 
+# to code repo
+
+catalog.sqlite
+manifest.json
