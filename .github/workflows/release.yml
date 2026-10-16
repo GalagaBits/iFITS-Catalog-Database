@@ -1,33 +1,30 @@
 # .github/workflows/release.yml
-# 
-# This is a GitHub Actions that builds and publishes the release
-# when a tag (i.e. v0.1.0) is pushed.
-# 
-
+# Every time schema.sql, seed.sql or build.sh changes on main: build catalog.sqlite and
+# replace the files in the main-catalog release. The app always downloads from there.
 name: Release catalog
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]                                 # only pushes to main
+    paths: ['schema.sql', 'seed.sql', 'build.sh']    # only when the catalog changed
+  workflow_dispatch:                                 # adds a "Run workflow" button
 
 permissions:
-  contents: write               # the workflow will write the release
+  contents: write                                    # lets the workflow update releases
 
 jobs:
   release:
-    runs-on: ubuntu-latest      # type of machine the action will run on
+    runs-on: ubuntu-latest                           # a fresh Linux computer from GitHub
     steps:
-      - uses: actions/checkout@v4  # what is this step?
-      
+      - uses: actions/checkout@v4                    # copy the repo onto it
+
       - name: Install sqlite3
         run: sudo apt-get update && sudo apt-get install -y sqlite3
 
       - name: Build catalog.sqlite and manifest.json
-        run: sh ./build.sh "${GITHUB_REF_NAME#v}"
+        run: sh ./build.sh "0.1.${{ github.run_number }}"   # version goes up by one each run
 
-      - name: Publish the release
+      - name: Replace the files in the main-catalog release
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: | # the | lets the command run on several lines
-            gh release create "$GITHUB_REF_NAME" catalog.sqlite manifest.json \
-              --title "Catalog $GITHUB_REF_NAME" --notes "Automated buid."
+          GH_TOKEN: ${{ github.token }}              # permission for the gh command
+        run: gh release upload main-catalog catalog.sqlite manifest.json --clobber
