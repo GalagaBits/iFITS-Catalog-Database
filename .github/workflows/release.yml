@@ -6,7 +6,7 @@ name: Release catalog
 on:
   push:
     branches: [main]                                 # only pushes to main
-    paths: ['schema.sql', 'seed.sql', 'build.sh']    # only when the catalog changed
+    paths: ['schema.sql', 'seed.sql', 'build.sh', 'VERSION']    # only when the catalog changed
   workflow_dispatch:                                 # adds a "Run workflow" button
 
 permissions:
@@ -22,9 +22,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y sqlite3
 
       - name: Build catalog.sqlite and manifest.json
-        run: sh ./build.sh "0.1.${{ github.run_number }}"   # version goes up by one each run
+        run: sh ./build.sh "$(cat VERSION)"   # version goes up by one each run
 
       - name: Replace the files in the main-catalog release
         env:
           GH_TOKEN: ${{ github.token }}              # permission for the gh command
-        run: gh release upload main-catalog catalog.sqlite manifest.json --clobber
+        run: |
+          gh release upload main-catalog catalog.sqlite manifest.json --clobber
+          gh release edit main-catalog --title "Catalog $(cat VERSION)"
+        
